@@ -1,0 +1,12 @@
+setup.py
+app/__init__.py
+app/ml/__init__.py
+app/ml/model.py
+app/ml/train.py
+app/tests/__init__.py
+app/tests/test_model.py
+mnist_model.egg-info/PKG-INFO
+mnist_model.egg-info/SOURCES.txt
+mnist_model.egg-info/dependency_links.txt
+mnist_model.egg-info/requires.txt
+mnist_model.egg-info/top_level.txt

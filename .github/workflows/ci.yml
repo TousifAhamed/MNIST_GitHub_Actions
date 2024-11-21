@@ -8,7 +8,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python-version: ['3.8']
     
     steps:
     - uses: actions/checkout@v4
@@ -16,7 +20,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.8'
+        python-version: ${{ matrix.python-version }}
         cache: 'pip'
         
     - name: Install dependencies
@@ -24,20 +28,37 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-cov
         pip install -r requirements.txt
+        pip install -e .
         
-    - name: Test model parameters
+    - name: Test model parameters (Windows)
+      if: runner.os == 'Windows'
       run: |
+        $env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)"
         pytest app/tests/test_model.py::test_model_parameters -v
+      shell: pwsh
         
-    - name: Test model accuracy
+    - name: Test model accuracy (Windows)
+      if: runner.os == 'Windows'
       run: |
+        $env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)"
         pytest app/tests/test_model.py::test_model_accuracy -v
+      shell: pwsh
+        
+    - name: Test model parameters (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_model.py::test_model_parameters -v
+        
+    - name: Test model accuracy (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_model.py::test_model_accuracy -v
         
     - name: Upload model artifacts
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: mnist-model
+        name: mnist-model-${{ matrix.os }}
         path: |
           mnist_model.pth
           best_model.pth

@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from model import MNISTNet
+from app.ml.model import MNISTNet
 
 # Filter out specific warnings
 warnings.filterwarnings('ignore', category=UserWarning, message='.*?NumPy.*?')
