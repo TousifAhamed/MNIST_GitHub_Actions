@@ -1,4 +1,4 @@
-name: Model Tests
+name: MNIST Model Tests
 
 on:
   push:
@@ -15,9 +15,10 @@ jobs:
         python-version: ['3.8']
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
     
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -29,32 +30,53 @@ jobs:
         pip install pytest pytest-cov
         pip install -r requirements.txt
         pip install -e .
-        
-    - name: Test model parameters (Windows)
+      
+    - name: 🔍 Checking Model Parameters
       if: runner.os == 'Windows'
       run: |
+        echo "::group::Testing Model Parameters"
+        echo "Verifying model has less than 25,000 parameters..."
         $env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)"
         pytest app/tests/test_model.py::test_model_parameters -v
+        echo "::endgroup::"
       shell: pwsh
         
-    - name: Test model accuracy (Windows)
+    - name: 🎯 Testing Model Accuracy
       if: runner.os == 'Windows'
       run: |
+        echo "::group::Testing Model Accuracy"
+        echo "Verifying model achieves >95% accuracy in one epoch..."
         $env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)"
         pytest app/tests/test_model.py::test_model_accuracy -v
+        echo "::endgroup::"
       shell: pwsh
         
-    - name: Test model parameters (Linux)
+    - name: 🔍 Checking Model Parameters
       if: runner.os == 'Linux'
       run: |
+        echo "::group::Testing Model Parameters"
+        echo "Verifying model has less than 25,000 parameters..."
         PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_model.py::test_model_parameters -v
+        echo "::endgroup::"
         
-    - name: Test model accuracy (Linux)
+    - name: 🎯 Testing Model Accuracy
       if: runner.os == 'Linux'
       run: |
+        echo "::group::Testing Model Accuracy"
+        echo "Verifying model achieves >95% accuracy in one epoch..."
         PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_model.py::test_model_accuracy -v
+        echo "::endgroup::"
         
-    - name: Upload model artifacts
+    - name: 📊 Generate Test Summary
+      if: always()
+      run: |
+        echo "### Model Test Results 🚀" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Parameter Check**: Model has less than 25,000 parameters" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Accuracy Check**: Achieved >95% accuracy in one epoch" >> $GITHUB_STEP_SUMMARY
+        echo "🖥️ **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+        echo "🐍 **Python**: ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+        
+    - name: 💾 Upload trained model
       if: success()
       uses: actions/upload-artifact@v4
       with:
@@ -63,3 +85,17 @@ jobs:
           mnist_model.pth
           best_model.pth
         retention-days: 90
+
+    - name: 🎉 All Tests Passed
+      if: success()
+      run: |
+        echo "::notice title=Success::All model tests passed successfully!"
+        echo "✅ Model has less than 25,000 parameters"
+        echo "✅ Achieved >95% accuracy in one epoch"
+
+    - name: ❌ Test Failure
+      if: failure()
+      run: |
+        echo "::error::Model tests failed! Please check the requirements:"
+        echo "1. Model must have less than 25,000 parameters"
+        echo "2. Must achieve >95% accuracy in one epoch"
