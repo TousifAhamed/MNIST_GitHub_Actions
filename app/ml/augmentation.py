@@ -30,7 +30,10 @@ class ImageAugmenter:
             
         elif augmentation_type == "brightness":
             factor = params.get("factor", 1.2)
-            return TF.adjust_brightness(image, brightness_factor=factor)
+            img_tensor = TF.to_tensor(image)
+            brightened = img_tensor * factor
+            brightened = torch.clamp(brightened, 0., 1.)
+            return TF.to_pil_image(brightened, mode=original_mode)
             
         elif augmentation_type == "affine":
             # Decompose affine parameters for better control

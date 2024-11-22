@@ -99,7 +99,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         echo "::group::All Augmentation Tests"
-        PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_augmentation.py -v
+        PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_augmentation.py -v --capture=no
         echo "::endgroup::"
         
     - name: 📊 Generate Test Summary

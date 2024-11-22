@@ -124,14 +124,30 @@ def test_brightness_range(augmenter, sample_image):
 
 def test_brightness_effect(augmenter, sample_image):
     """Test brightness actually changes image intensity"""
-    augmented = augmenter.apply_augmentation(
-        sample_image, 
+    # Create a sample image with non-zero values to better test brightness
+    img = Image.new('L', (28, 28), color=128)  # Mid-gray image
+    
+    # Test both increase and decrease in brightness
+    augmented_brighter = augmenter.apply_augmentation(
+        img, 
         "brightness", 
         {"factor": 1.5}
     )
-    original_mean = np.mean(np.array(sample_image))
-    augmented_mean = np.mean(np.array(augmented))
-    assert augmented_mean != original_mean, "Brightness should change pixel intensities"
+    augmented_darker = augmenter.apply_augmentation(
+        img, 
+        "brightness", 
+        {"factor": 0.5}
+    )
+    
+    original_mean = np.mean(np.array(img))
+    brighter_mean = np.mean(np.array(augmented_brighter))
+    darker_mean = np.mean(np.array(augmented_darker))
+    
+    # Check that brightness changes work in both directions
+    assert brighter_mean > original_mean, "Increased brightness should increase pixel intensities"
+    assert darker_mean < original_mean, "Decreased brightness should decrease pixel intensities"
+    print(f"\nBrightness test values - Original: {original_mean:.2f}, "
+          f"Brighter: {brighter_mean:.2f}, Darker: {darker_mean:.2f}")
 
 # Affine Tests
 def test_affine_components(augmenter, sample_image):
