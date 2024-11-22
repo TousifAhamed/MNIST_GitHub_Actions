@@ -7,8 +7,12 @@ from PIL import Image
 import io
 from ..core.security import SecurityHandler
 from ..ml.model import MNISTNet
+from .augmentation_endpoints import router as augmentation_router
 
 app = FastAPI(title="MNIST Classifier API")
+
+# Include augmentation router
+app.include_router(augmentation_router, prefix="/augmentation", tags=["augmentation"])
 
 # Security
 security = HTTPBearer()
@@ -26,6 +30,18 @@ app.add_middleware(
 model = MNISTNet()
 model.load_state_dict(torch.load('mnist_model.pth'))
 model.eval()
+
+@app.get("/")
+async def root():
+    """Root endpoint with API information"""
+    return {
+        "name": "MNIST Classifier API",
+        "endpoints": {
+            "predict": "/predict",
+            "augmentation_ui": "/augmentation/augmentation-ui",
+            "augment": "/augmentation/augment"
+        }
+    }
 
 @app.post("/predict")
 async def predict(

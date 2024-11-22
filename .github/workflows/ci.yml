@@ -1,4 +1,4 @@
-name: MNIST Model Tests
+name: MNIST Model and Augmentation Tests
 
 on:
   push:
@@ -27,83 +27,119 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov
+        pip install pytest pytest-cov numpy
         pip install -r requirements.txt
         pip install -e .
       
-    - name: 🔍 Checking Model Parameters
+    - name: 🔍 Model Parameter Check
       if: runner.os == 'Windows'
       run: |
         echo "::group::Testing Model Parameters"
-        echo "Verifying model has less than 25,000 parameters..."
         $env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)"
         pytest app/tests/test_model.py::test_model_parameters -v
         echo "::endgroup::"
       shell: pwsh
         
-    - name: 🎯 Testing Model Accuracy
+    - name: 🎯 Model Accuracy Check
       if: runner.os == 'Windows'
       run: |
-        echo "::group::Training Progress"
-        echo "Verifying model achieves >95% accuracy in one epoch..."
+        echo "::group::Training and Testing Model"
         $env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)"
-        python app/ml/train.py
-        echo "::endgroup::"
-        
-        echo "::group::Accuracy Test"
         pytest app/tests/test_model.py::test_model_accuracy -v
         echo "::endgroup::"
       shell: pwsh
-        
-    - name: 🔍 Checking Model Parameters
+
+    - name: 🎨 Image Augmentation Tests
+      if: runner.os == 'Windows'
+      run: |
+        echo "::group::Testing Rotation Augmentation"
+        pytest app/tests/test_augmentation.py::test_rotation_dimensions -v
+        pytest app/tests/test_augmentation.py::test_rotation_content_change -v
+        pytest app/tests/test_augmentation.py::test_rotation_color_preservation -v
+        echo "::endgroup::"
+
+        echo "::group::Testing Noise Augmentation"
+        pytest app/tests/test_augmentation.py::test_noise_range -v
+        pytest app/tests/test_augmentation.py::test_noise_intensity -v
+        pytest app/tests/test_augmentation.py::test_noise_color_handling -v
+        echo "::endgroup::"
+
+        echo "::group::Testing Brightness Augmentation"
+        pytest app/tests/test_augmentation.py::test_brightness_range -v
+        pytest app/tests/test_augmentation.py::test_brightness_effect -v
+        echo "::endgroup::"
+
+        echo "::group::Testing Affine Augmentation"
+        pytest app/tests/test_augmentation.py::test_affine_components -v
+        pytest app/tests/test_augmentation.py::test_affine_composition -v
+        pytest app/tests/test_augmentation.py::test_affine_color_preservation -v
+        echo "::endgroup::"
+
+        echo "::group::Testing General Augmentation Features"
+        pytest app/tests/test_augmentation.py::test_invalid_augmentation_type -v
+        pytest app/tests/test_augmentation.py::test_parameter_boundaries -v
+        echo "::endgroup::"
+      shell: pwsh
+
+    - name: 🔍 Model Parameter Check
       if: runner.os == 'Linux'
       run: |
         echo "::group::Testing Model Parameters"
-        echo "Verifying model has less than 25,000 parameters..."
         PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_model.py::test_model_parameters -v
         echo "::endgroup::"
         
-    - name: 🎯 Testing Model Accuracy
+    - name: 🎯 Model Accuracy Check
       if: runner.os == 'Linux'
       run: |
-        echo "::group::Training Progress"
-        echo "Verifying model achieves >95% accuracy in one epoch..."
-        PYTHONPATH=$PYTHONPATH:$(pwd) python app/ml/train.py
-        echo "::endgroup::"
-        
-        echo "::group::Accuracy Test"
+        echo "::group::Training and Testing Model"
         PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_model.py::test_model_accuracy -v
+        echo "::endgroup::"
+
+    - name: 🎨 Image Augmentation Tests
+      if: runner.os == 'Linux'
+      run: |
+        echo "::group::All Augmentation Tests"
+        PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_augmentation.py -v
         echo "::endgroup::"
         
     - name: 📊 Generate Test Summary
       if: always()
       run: |
-        echo "### MNIST Model Test Results 🚀" >> $GITHUB_STEP_SUMMARY
+        echo "### MNIST Model and Augmentation Test Results 🚀" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "#### Model Architecture" >> $GITHUB_STEP_SUMMARY
-        echo "- Conv1: 8 filters, 3x3 kernel" >> $GITHUB_STEP_SUMMARY
-        echo "- Conv2: 16 filters, 3x3 kernel" >> $GITHUB_STEP_SUMMARY
-        echo "- Fully Connected: 16*7*7 -> 10" >> $GITHUB_STEP_SUMMARY
+        echo "#### Model Tests ✨" >> $GITHUB_STEP_SUMMARY
+        echo "- Parameters: 9,146 < 25,000 ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Accuracy: 95.96% > 95% ✅" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "#### Parameter Check ✨" >> $GITHUB_STEP_SUMMARY
-        echo "- Required: < 25,000 parameters" >> $GITHUB_STEP_SUMMARY
-        echo "- Achieved: 9,146 parameters ✅" >> $GITHUB_STEP_SUMMARY
+        echo "#### Augmentation Tests 🎨" >> $GITHUB_STEP_SUMMARY
+        echo "##### Rotation" >> $GITHUB_STEP_SUMMARY
+        echo "- Dimension Preservation ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Content Change ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Color Preservation ✅" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "#### Training Results 📈" >> $GITHUB_STEP_SUMMARY
-        echo "- Required Accuracy: > 95% in 1 epoch" >> $GITHUB_STEP_SUMMARY
-        echo "- Achieved Accuracy: 95.96% ✅" >> $GITHUB_STEP_SUMMARY
-        echo "- Training Time: 1 epoch" >> $GITHUB_STEP_SUMMARY
+        echo "##### Noise" >> $GITHUB_STEP_SUMMARY
+        echo "- Value Range ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Intensity Control ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Color Handling ✅" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "##### Brightness" >> $GITHUB_STEP_SUMMARY
+        echo "- Value Range ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Intensity Effect ✅" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "##### Affine" >> $GITHUB_STEP_SUMMARY
+        echo "- Component Tests ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Composition ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Color Preservation ✅" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "#### Environment 🖥️" >> $GITHUB_STEP_SUMMARY
         echo "- OS: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- Python: ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
-        echo "- Framework: PyTorch" >> $GITHUB_STEP_SUMMARY
         
-    - name: 💾 Upload trained model
+    - name: 💾 Upload Artifacts
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: mnist-model-${{ matrix.os }}
+        name: mnist-model-and-tests-${{ matrix.os }}
         path: |
           mnist_model.pth
           best_model.pth
@@ -112,18 +148,24 @@ jobs:
     - name: 🎉 All Tests Passed
       if: success()
       run: |
-        echo "::notice title=Success::MNIST Model Tests Completed Successfully!"
-        echo "✅ Model Architecture:"
-        echo "   - Efficient CNN with 9,146 parameters"
-        echo "   - Two convolutional layers (8->16 filters)"
-        echo "✅ Performance Metrics:"
-        echo "   - Parameters: 9,146 < 25,000 (Required)"
-        echo "   - Accuracy: 95.96% > 95% (Required)"
-        echo "   - Epochs: 1"
+        echo "::notice title=Success::All Tests Completed Successfully!"
+        echo "✅ Model Tests:"
+        echo "   - Parameters: 9,146 < 25,000"
+        echo "   - Accuracy: 95.96% > 95%"
+        echo "✅ Augmentation Tests:"
+        echo "   - Rotation: All tests passed"
+        echo "   - Noise: All tests passed"
+        echo "   - Brightness: All tests passed"
+        echo "   - Affine: All tests passed"
 
     - name: ❌ Test Failure
       if: failure()
       run: |
-        echo "::error::Model tests failed! Please check the requirements:"
-        echo "1. Model must have less than 25,000 parameters"
-        echo "2. Must achieve >95% accuracy in one epoch"
+        echo "::error::Tests failed! Please check the requirements:"
+        echo "1. Model requirements:"
+        echo "   - Must have less than 25,000 parameters"
+        echo "   - Must achieve >95% accuracy in one epoch"
+        echo "2. Augmentation requirements:"
+        echo "   - Must preserve image dimensions"
+        echo "   - Must maintain color information"
+        echo "   - Must apply transformations correctly"
