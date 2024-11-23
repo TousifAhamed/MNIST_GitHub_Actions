@@ -1,9 +1,12 @@
+README.md
 setup.py
 app/__init__.py
 app/ml/__init__.py
+app/ml/augmentation.py
 app/ml/model.py
 app/ml/train.py
 app/tests/__init__.py
+app/tests/test_augmentation.py
 app/tests/test_model.py
 mnist_model.egg-info/PKG-INFO
 mnist_model.egg-info/SOURCES.txt

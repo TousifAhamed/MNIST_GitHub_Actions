@@ -2,6 +2,9 @@
 
 A FastAPI application that combines MNIST digit classification with advanced image augmentation capabilities. The model achieves >95% accuracy in a single epoch while maintaining less than 25,000 parameters.
 
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+
+
 ## 🌟 Features
 
 ### 1. MNIST Classification
@@ -50,7 +53,7 @@ pip install -e .
 
 1. Start the FastAPI server:
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.api.endpoints:app --reload
 ```
 
 2. Access the application:
