@@ -1,6 +1,6 @@
 # MNIST Image Classification and Augmentation API 🚀
 
-A FastAPI application that combines MNIST digit classification with advanced image augmentation capabilities. The model achieves >95% accuracy in a single epoch while maintaining less than 25,000 parameters.
+A FastAPI application that combines MNIST digit classification with advanced image augmentation capabilities. The model achieves >95% accuracy in a single epoch while maintaining less than 25,000 parameters. The application includes a modern web interface for interactive image augmentation with real-time previews and detailed descriptions.
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
