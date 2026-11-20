@@ -28,7 +28,7 @@ app.add_middleware(
 
 # Load model
 model = MNISTNet()
-model.load_state_dict(torch.load('mnist_model.pth'))
+model.load_state_dict(torch.load('mnist_model.pth', weights_only=True))
 model.eval()
 
 @app.get("/")

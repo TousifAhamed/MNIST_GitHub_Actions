@@ -1,3 +1,6 @@
+import os
+import secrets
+import warnings
 from datetime import datetime, timedelta
 from typing import Optional
 import jwt
@@ -8,7 +11,12 @@ from passlib.context import CryptContext
 class SecurityHandler:
     security = HTTPBearer()
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    SECRET_KEY = "your-secret-key-stored-securely"  # In production, use environment variable
+    # Read the signing key from the environment. If it is not set, use a random
+    # per-process key so tokens can never be forged with a key published in the repo
+    # (tokens then stop working when the server restarts).
+    SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or secrets.token_urlsafe(64)
+    if "JWT_SECRET_KEY" not in os.environ:
+        warnings.warn("JWT_SECRET_KEY is not set; using a random key for this process.")
     ALGORITHM = "HS256"
     
     @staticmethod
@@ -37,5 +45,5 @@ class SecurityHandler:
             return payload
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token has expired")
-        except jwt.JWTError:
+        except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Could not validate credentials") 
