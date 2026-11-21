@@ -49,6 +49,15 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+4. Set the JWT signing secret (required for login tokens):
+```bash
+# macOS/Linux
+export JWT_SECRET_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(64))")
+# Windows PowerShell
+$env:JWT_SECRET_KEY = python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+If `JWT_SECRET_KEY` is not set, the app generates a random key at startup and logs a warning. Tokens then stop working whenever the server restarts. In production, always set it, and keep it secret (never commit it).
+
 ## 🚀 Running the Application
 
 1. Start the FastAPI server:
